@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer components{
+  .textcolre{
+    @apply text-black dark:text-[#e0e0e0]
+     
+  }
+  .inputColore{
+    @apply bg-[#e0e0e0]   dark:bg-[#333333]
+  }
+  .lableStyle{
+    @apply flex items-start flex-col gap-1
+  }
+  .borderStyle{
+    @apply rounded-md border-[#f6f6f6] dark:border-[#414141] border-[2px] 
+  }
+  .buttonStyle{
+    @apply p-4 rounded-md font-semibold text-xl
+  }
+}
+
+
