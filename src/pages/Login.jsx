@@ -6,6 +6,7 @@ export default function Login(){
 
     const [email, setEmail]= useState("")
     const [password, setPasswrod] = useState("")
+    const [stayLogIn,setStayLogIn] = useState(false)
 
     function handelSetEmail(e){
         setEmail(e.target.value)
@@ -17,7 +18,7 @@ export default function Login(){
     function handelSubmit(e){
       e.preventDefault();
 
-      alert(email + password)
+      alert(email + password+ stayLogIn)
 
     }
     return(
@@ -35,7 +36,9 @@ export default function Login(){
                         <Input type="password" Value={password} onChange={handelSetPassword}  />
                     </label>
                     <label className="text-xl font-semibold">
-                        <input type="checkbox" className="mr-1"/>
+                        <input type="checkbox" className="mr-1" checked={stayLogIn} onChange={(e)=>{
+                            setStayLogIn(e.target.checked)
+                        }}/>
                         Stay signed In
                     </label>
                     <button className="w-[100%] bg-[#a5d6a7] dark:bg-[#4caf50] hover:bg-[#40c844] buttonStyle"> Sign In</button>
