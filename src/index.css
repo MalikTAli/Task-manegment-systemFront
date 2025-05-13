@@ -18,7 +18,7 @@
     @apply rounded-md border-[#f6f6f6] dark:border-[#414141] border-[2px] 
   }
   .buttonStyle{
-    @apply px-4 py-2 rounded-md font-semibold text-xl
+    @apply sm:px-1 sm:py-0.5 md:px-2 md:py-1  lg:px-4 lg:py-2 rounded-md font-semibold text-xl
   }
 }
 

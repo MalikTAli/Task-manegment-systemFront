@@ -21,6 +21,27 @@ const users = [
   },
 ];
 
+const students = [
+  {
+    id: 1,
+    email: "malik@gmail.com",
+    password: "123456",
+    isStudent: false,
+  },
+  {
+    id: 2,
+    email: "ahmad@gmail.com",
+    password: "123456",
+    isStudent: true,
+  },
+  {
+    id: 3,
+    email: "sameh@gmail.com",
+    password: "123456",
+    isStudent: true,
+  },
+];
+
 const projects = [
   {
     id: 1,
@@ -127,7 +148,7 @@ const chats = [
     ],
   },
 ];
-localStorage.setItem("users", JSON.stringify(users));
+localStorage.setItem("students", JSON.stringify(students));
 localStorage.setItem("projects", JSON.stringify(projects));
 localStorage.setItem("tasks", JSON.stringify(tasks));
 localStorage.setItem("chats", JSON.stringify(chats));
