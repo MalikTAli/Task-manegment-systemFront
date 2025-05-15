@@ -2,8 +2,8 @@ import { useEffect, useRef } from "react";
 import { useProject } from "../Context/ProjectContext";
 import TaskCard from "./TaskCard";
 
-export default function ProjectDetails({ isVisible, onClose, project }) {
-  const { setIsVisable } = useProject();
+export default function ProjectDetails({ isVisible }) {
+  const { setIsVisable ,selectedProjectId } = useProject();
   const detailRef = useRef();
   useEffect(() => {
     function handleClickOutside(event) {
