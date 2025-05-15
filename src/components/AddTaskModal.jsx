@@ -1,24 +1,52 @@
 import { useEffect, useState } from "react";
 import Input from "./Input";
+import {getAllProjects} from "../services/projectService"
+import { getAllStudents } from "../services/studentService";
+import { addTask } from "../services/taskService";
+import { useSelector } from "react-redux";
+import LoaderSpinner from "../ui/LoaderSpinner";
 export default function AddTaskModal({ onClose }) {
   const [allStudent,setAllStudents] = useState([])
-  const [allProjetcs,setAllProjetcs] = useState([])
-  useEffect(() => {
-      const storedStudents = localStorage.getItem("students");
-      const storedProjects = localStorage.getItem("projects")
-      if (storedStudents) {
-        setAllStudents(JSON.parse(storedStudents));
-      }
-      if(storedProjects){
-        setAllProjetcs(JSON.parse(storedProjects))
-      }
-    }, []);
-  const [selectedProject,setSelectedProject] =useState("")
+  const [allProjetcs,setProjects] =useState([])
+  const [loading,setLoading] = useState(true)
+  const { token, user } = useSelector((state) => state.auth);
+  console.log(user)
+   const [selectedProject,setSelectedProject] =useState("")
   const [title,setTitle] = useState("")
   const [description,setDescription] = useState("")
   const [selectedStudent, setSelectedStudent] = useState("")
   const [endDate,setEndDate] = useState("")
   const [status,setStaus] = useState("In Progress")
+
+  const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+  async function fetchData() {
+    try {
+      setLoading(true);
+
+      const [projectsData, studentsData] = await Promise.all([
+        getAllProjects({ status: "", search: "", token }),
+        getAllStudents(token),
+      ]);
+
+      setProjects(projectsData);
+      setAllStudents(studentsData);
+
+      if (user?.role === "student") {
+        setSelectedStudent(user.id);
+      }
+    } catch (error) {
+      console.error("Error loading data:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  fetchData();
+}, [token,user]);
+
+ 
 
   function handelSetTitle(e){
     setTitle(e.target.value)
@@ -30,40 +58,54 @@ export default function AddTaskModal({ onClose }) {
     setSelectedStudent(e.target.value);
   };
 
-  function handleSubmit(e){
-    e.preventDefault();
-    const newTask = {
-      project:selectedProject,
-      title,
-      description,
-      student: selectedStudent,
-      endDate,
-      status
-    };
+  async function handleSubmit(e) {
+  e.preventDefault();
 
-    console.log(newTask)
+  const taskInput = {
+    name: title,
+    description,
+    assignedTo: selectedStudent,
+    assignedToProject: selectedProject,
+    status,
+    dueDate: new Date(endDate).toISOString(),
+  };
+
+  setSubmitting(true);
+
+  try {
+    await addTask(taskInput, token);
     
-    setSelectedProject("")
+    setSelectedProject("");
     setTitle("");
     setDescription("");
     setSelectedStudent("");
     setEndDate("");
-    setStaus("In Progress")
+    setStaus("In Progress");
+
+    onClose();
+  } catch (err) {
+    console.error("Failed to add task:", err.message);
+    alert("Error: " + err.message);
+  } finally {
+    setSubmitting(false);
   }
+}
+
 
   const studentList =allStudent.map((student)=>{
     return <option key={student.id} value={student.id}>{student.email}</option>
   })
+  
 
   const projectsList = allProjetcs.map((project)=>{
     return <option key={project.id} value={project.id}>{project.name}</option>
   })
 
+  if(loading)return <LoaderSpinner />
   return (
-    // الخلفية المعتمة
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       
-      {/* محتوى المودال */}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+
       <div className="textcolre w-[50%] bg-[#f8f8f8] dark:bg-[#1e1e1e] p-10 borderStyle min-h-[400px] rounded-lg shadow-lg relative">
         <div className="modalHeader flex justify-between items-center">
           <h1 className="font-bold text-3xl text-[#0570e5]">Create New Task</h1>
@@ -93,15 +135,20 @@ export default function AddTaskModal({ onClose }) {
                     setDescription(e.target.value)
                 }} />
             </label>
-            <label className="lableStyle"
-                >Assigend Student:<br />
-                <select className="inputColore w-[100%] rounded-md"
-                value={selectedStudent}
-                onChange={handleSelectChange} 
+
+            {user?.role !== "student" && (
+              <label className="lableStyle">
+                Assigned Student:<br />
+                <select
+                  className="inputColore w-[100%] rounded-md"
+                  value={selectedStudent}
+                  onChange={handleSelectChange}
                 >
-                    {studentList}
+                  {studentList}
                 </select>
-            </label>
+              </label>
+            )}
+
             <label className="lableStyle"
                 >Task Status:<br />
                 <select className="inputColore w-[100%] rounded-md" value={status} onChange={(e)=>{
@@ -140,7 +187,7 @@ export default function AddTaskModal({ onClose }) {
                     : 'bg-[#4caf50] hover:bg-[#3c923f] text-white'
                 }`}
             >
-               Add Task
+              {submitting ? "Adding..." : "Add Task"}
             </button>
         </form>
 

@@ -1,10 +1,40 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useProject } from "../Context/ProjectContext";
 import TaskCard from "./TaskCard";
+import { getProjectDetails } from "../services/projectService";
+import { useSelector } from "react-redux";
+import LoaderSpinner from "../ui/LoaderSpinner";
+import { getNameFromEmail } from "../utilites/getNameFromEmail";
 
 export default function ProjectDetails({ isVisible }) {
-  const { setIsVisable ,selectedProjectId } = useProject();
+  const { setIsVisable, selectedProjectId } = useProject();
+  console.log("selectedID" +selectedProjectId)
   const detailRef = useRef();
+  const token = useSelector((state) => state.auth.token);
+
+  const [loading, setLoading] = useState(false);
+  const [project, setProject] = useState(null);
+
+  useEffect(() => {
+    async function fetchProject() {
+      if (!selectedProjectId || !isVisible) return;
+
+      setLoading(true);
+      try {
+        const data = await getProjectDetails(selectedProjectId, token);
+        console.log("📦 Project Details:", data);
+        setProject(data);
+        console.log(data)
+      } catch (error) {
+        console.error("Error loading project:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProject();
+  }, [selectedProjectId, isVisible, token]);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (detailRef.current && !detailRef.current.contains(event.target)) {
@@ -21,50 +51,58 @@ export default function ProjectDetails({ isVisible }) {
     };
   }, [isVisible, setIsVisable]);
 
-
-
-if (!isVisible) return null;
+  if (!isVisible) return null;
 
   return (
     <div
       ref={detailRef}
-      className={`fixed top-0 right-0 h-full w-[30%] bg-white dark:bg-[#1e1e1e] border-l-[3px] border-l-[#2e2e2e] shadow-lg transition-transform duration-300 z-[50]`}
+      className={`fixed top-0 right-0 h-full w-[30%] bg-white dark:bg-[#1e1e1e] border-l-[3px] border-l-[#2e2e2e] shadow-lg transition-transform duration-300 z-[50] overflow-y-auto`}
     >
       <div className="p-4">
-        <h2 className="text-2xl font-bold text-[#117380] py-4">Project Title</h2>
-        <hr className="h-[2px] border-none bg-[#2f2f2f] text-black" />
-        <div className="flex flex-col gap-3">
-          <p><strong>Description:</strong> this is the project description</p>
-          <p><strong>Category:</strong> This is a Category project.</p>
-          <p><strong>Students:</strong> Student1,Student2, Student3</p>
-          <p><strong>Start Date:</strong>20-5-2025</p>
-          <p><strong>Start Date:</strong>25-5-2025</p>
-        </div>
-        <div className="mt-5">
-          <h1 className="text-[#02b5cc] font-bold text-2xl pb-2">Tasks:</h1>
-          <hr className="h-[2px] border-none bg-[#2f2f2f] text-black" />
-          <div className="tasks-Container">
-              <TaskCard />
-          </div>
-        </div>
+        {loading ? (
+          <LoaderSpinner />
+        ) : project ? (
+          <>
+            <h2 className="text-2xl font-bold text-[#117380] py-4">
+              {project.name}
+            </h2>
+            <hr className="h-[2px] border-none bg-[#2f2f2f]" />
+            <div className="flex flex-col gap-3">
+              <p><strong>Description:</strong> {project.description}</p>
+              <p><strong>Category:</strong> {project.category}</p>
+              <p><strong>Start Date:</strong> {project.startDate}</p>
+              <p><strong>End Date:</strong> {project.endDate}</p>
+              <p>
+                <strong>Students:</strong>{" "}
+                {project.members && project.members.length > 0
+                  ? project.members.map((m, index) => (
+                      <span key={index}>
+                        {getNameFromEmail(m.email)}
+                        {index < project.members.length - 1 ? ", " : ""}
+                      </span>
+                    ))
+                  : "No members"}
+              </p>
+            </div>
+
+            <div className="mt-5">
+              <h1 className="text-[#02b5cc] font-bold text-2xl pb-2">Tasks:</h1>
+              <hr className="h-[2px] border-none bg-[#2f2f2f]" />
+              <div className="tasks-Container mt-2 flex flex-col gap-2">
+                {project.tasks.length > 0 ? (
+                  project.tasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))
+                ) : (
+                  <p className="text-gray-500">No tasks found.</p>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className="text-gray-500">No project data available.</p>
+        )}
       </div>
     </div>
   );
 }
-
-
-//  <div className="p-4 flex flex-col h-full">
-//         <div className="flex justify-between items-center mb-4">
-//           <h2 className="text-lg font-bold">Project Details</h2>
-//           <button onClick={onClose} className="text-red-500 text-xl font-bold">&times;</button>
-//         </div>
-//         {project ? (
-//           <div>
-//             <p><strong>Name:</strong> {project.name}</p>
-//             <p><strong>Description:</strong> {project.description}</p>
-//             {/* يمكنك إضافة مزيد من التفاصيل هنا */}
-//           </div>
-//         ) : (
-//           <p>No project selected.</p>
-//         )}
-//       </div>

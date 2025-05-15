@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export async function getAllProjects({ status = "all", search = "", token }) {
   const response = await fetch("http://localhost:4000/graphql", {
     method: "POST",
@@ -84,3 +86,55 @@ export async function createProject(projectInput, token) {
   return result.data.createProject;
 }
 
+
+
+export const getProjectDetails = async (projectId, token) => {
+  const query = `
+    query GetProjectWithTasks($id: ID!) {
+      getProjectWithTasks(id: $id) {
+        id
+        name
+        description
+        startDate
+        endDate
+        category
+        members {
+          email
+        }
+        tasks {
+          id
+          name
+          status
+          description
+          dueDate
+          assignedTo {
+            id
+            email
+          }
+          assignedToProject {
+            id
+            name
+          }
+        }
+      }
+    }
+  `;
+
+  const variables = { id: projectId };
+
+  const response = await axios.post(
+    "http://localhost:4000/graphql",
+    { query, variables },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (response.data.errors) {
+    throw new Error(response.data.errors[0].message);
+  }
+
+  return response.data.data.getProjectWithTasks;
+};
